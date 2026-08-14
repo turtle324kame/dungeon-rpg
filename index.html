@@ -1,37 +1,62 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dungeon RPG</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Monster Dungeon RPG</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>Dungeon RPG</h1>
+<h1>MONSTER DUNGEON</h1>
 
 <div id="game">
 
-    <div id="dungeon"></div>
+    <!-- 一人称ダンジョン画面 -->
+    <div id="dungeonView">
 
-    <div id="status">
-        <div>Lv <span id="level">1</span></div>
-        <div>HP <span id="hp">100</span> / 100</div>
+        <div id="dungeonMessage">
+            地下迷宮 B1F
+        </div>
+
+        <canvas id="dungeonCanvas"></canvas>
+
     </div>
 
+    <!-- プレイヤー情報 -->
+    <div id="status">
+
+        <div>
+            Lv <span id="level">1</span>
+        </div>
+
+        <div>
+            HP <span id="hp">100</span> / 100
+        </div>
+
+    </div>
+
+    <!-- メッセージ -->
     <div id="message">
         ダンジョン探索開始！
     </div>
 
+    <!-- 操作 -->
     <div id="controls">
 
-        <button id="up">▲</button>
+        <div>
+            <button id="turnLeft">↶</button>
+            <button id="forward">▲</button>
+            <button id="turnRight">↷</button>
+        </div>
 
         <div>
-            <button id="left">◀</button>
-            <button id="down">▼</button>
-            <button id="right">▶</button>
+            <button id="back">▼</button>
         </div>
 
     </div>
@@ -41,4 +66,5 @@
 <script src="game.js"></script>
 
 </body>
+
 </html>
