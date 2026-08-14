@@ -1,15 +1,17 @@
 // ========================================
 // MONSTER DUNGEON RPG
-// 一人称ダンジョンシステム
+// 一人称ダンジョン探索システム
+// 疑似3Dレイキャスティング版
 // ========================================
 
-// --------------------
-// ダンジョン
-// --------------------
+
+// ========================================
+// ダンジョンマップ
+// ========================================
 //
 // # = 壁
 // . = 通路
-// S = 開始地点
+// S = スタート地点
 //
 
 const map = [
@@ -29,11 +31,13 @@ const map = [
 const mapWidth = map[0].length;
 const mapHeight = map.length;
 
-// --------------------
+
+// ========================================
 // プレイヤー
-// --------------------
+// ========================================
 
 const player = {
+
     x: 8,
     y: 5,
 
@@ -48,118 +52,150 @@ const player = {
     level: 1
 };
 
-// --------------------
-// Canvas
-// --------------------
 
-const canvas = document.getElementById("dungeonCanvas");
+// ========================================
+// Canvas
+// ========================================
+
+const canvas =
+    document.getElementById("dungeonCanvas");
+
 const ctx = canvas.getContext("2d");
 
-// Canvasサイズ
+
+// ========================================
+// Canvasサイズ調整
+// ========================================
+
 function resizeCanvas() {
 
-    const rect = canvas.getBoundingClientRect();
+    const rect =
+        canvas.getBoundingClientRect();
 
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    canvas.width =
+        Math.max(320, Math.floor(rect.width));
+
+    canvas.height =
+        Math.max(240, Math.floor(rect.height));
 
     drawDungeon();
 }
 
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
 
-// --------------------
+
+// ========================================
 // 壁判定
-// --------------------
+// ========================================
 
 function isWall(x, y) {
 
-    if (x < 0 ||
-        x >= mapWidth ||
+    if (
+        x < 0 ||
         y < 0 ||
-        y >= mapHeight) {
-
+        x >= mapWidth ||
+        y >= mapHeight
+    ) {
         return true;
     }
 
     return map[y][x] === "#";
 }
 
-// --------------------
-// 前方の座標
-// --------------------
 
-function getForwardPosition() {
+// ========================================
+// 移動方向
+// ========================================
 
-    let x = player.x;
-    let y = player.y;
+function getDirectionVector() {
 
     switch (player.direction) {
 
         case 0:
-            y--;
-            break;
+            return { x: 0, y: -1 };
 
         case 1:
-            x++;
-            break;
+            return { x: 1, y: 0 };
 
         case 2:
-            y++;
-            break;
+            return { x: 0, y: 1 };
 
         case 3:
-            x--;
-            break;
+            return { x: -1, y: 0 };
     }
 
-    return { x, y };
+    return { x: 0, y: -1 };
 }
 
-// --------------------
+
+// ========================================
 // 前進
-// --------------------
+// ========================================
 
 function moveForward() {
 
-    const next = getForwardPosition();
+    const dir =
+        getDirectionVector();
 
-    if (isWall(next.x, next.y)) {
+    const nextX =
+        player.x + dir.x;
+
+    const nextY =
+        player.y + dir.y;
+
+    if (isWall(nextX, nextY)) {
 
         showMessage("壁にぶつかった。");
 
         return;
     }
 
-    player.x = next.x;
-    player.y = next.y;
+    player.x = nextX;
+    player.y = nextY;
 
     showMessage("前へ進んだ。");
 
     drawDungeon();
 }
 
-// --------------------
+
+// ========================================
 // 後退
-// --------------------
+// ========================================
 
 function moveBack() {
 
-    const oldDirection = player.direction;
+    const dir =
+        getDirectionVector();
 
-    player.direction =
-        (player.direction + 2) % 4;
+    const nextX =
+        player.x - dir.x;
 
-    moveForward();
+    const nextY =
+        player.y - dir.y;
 
-    player.direction = oldDirection;
+    if (isWall(nextX, nextY)) {
+
+        showMessage("壁にぶつかった。");
+
+        return;
+    }
+
+    player.x = nextX;
+    player.y = nextY;
+
+    showMessage("後ろへ下がった。");
 
     drawDungeon();
 }
 
-// --------------------
+
+// ========================================
 // 左を向く
-// --------------------
+// ========================================
 
 function turnLeft() {
 
@@ -171,9 +207,10 @@ function turnLeft() {
     drawDungeon();
 }
 
-// --------------------
+
+// ========================================
 // 右を向く
-// --------------------
+// ========================================
 
 function turnRight() {
 
@@ -185,160 +222,487 @@ function turnRight() {
     drawDungeon();
 }
 
+
 // ========================================
 // 一人称ダンジョン描画
 // ========================================
 
 function drawDungeon() {
 
-    const w = canvas.width;
-    const h = canvas.height;
+    const width =
+        canvas.width;
 
+    const height =
+        canvas.height;
+
+
+    // ----------------------------
     // 背景
-    ctx.fillStyle = "#050505";
-    ctx.fillRect(0, 0, w, h);
+    // ----------------------------
 
-    // 天井
-    ctx.fillStyle = "#111";
+    // 空
+    ctx.fillStyle = "#101010";
 
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(w, 0);
-    ctx.lineTo(w * 0.72, h * 0.38);
-    ctx.lineTo(w * 0.28, h * 0.38);
-    ctx.closePath();
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height / 2
+    );
 
-    ctx.fill();
 
+    // ----------------------------
     // 床
-    ctx.fillStyle = "#181818";
+    // ----------------------------
 
-    ctx.beginPath();
-    ctx.moveTo(0, h);
-    ctx.lineTo(w, h);
-    ctx.lineTo(w * 0.72, h * 0.62);
-    ctx.lineTo(w * 0.28, h * 0.62);
-    ctx.closePath();
+    ctx.fillStyle = "#202020";
 
-    ctx.fill();
+    ctx.fillRect(
+        0,
+        height / 2,
+        width,
+        height / 2
+    );
 
-    // 奥行き
-    drawDepth(1, w, h);
+
+    // ----------------------------
+    // 床の遠近線
+    // ----------------------------
+
+    drawFloorLines(
+        width,
+        height
+    );
+
+
+    // ----------------------------
+    // レイキャスティング
+    // ----------------------------
+
+    castRays(
+        width,
+        height
+    );
+
+
+    // ----------------------------
+    // 画面枠
+    // ----------------------------
+
+    ctx.strokeStyle = "#777";
+    ctx.lineWidth = 2;
+
+    ctx.strokeRect(
+        1,
+        1,
+        width - 2,
+        height - 2
+    );
+
 
     updateStatus();
 }
 
+
 // ========================================
-// 奥行き描画
+// 床の遠近線
 // ========================================
 
-function drawDepth(depth, w, h) {
+function drawFloorLines(width, height) {
 
-    const pos = getPositionAtDepth(depth);
+    ctx.strokeStyle =
+        "rgba(130,130,130,0.18)";
 
-    if (isWall(pos.x, pos.y)) {
+    ctx.lineWidth = 1;
 
-        drawWall(depth, w, h);
 
-        return;
+    const horizon =
+        height * 0.52;
+
+
+    // 横方向の線
+
+    for (
+        let i = 1;
+        i <= 7;
+        i++
+    ) {
+
+        const t =
+            i / 7;
+
+        const y =
+            horizon +
+            Math.pow(t, 1.7) *
+            (height - horizon);
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            y
+        );
+
+        ctx.lineTo(
+            width,
+            y
+        );
+
+        ctx.stroke();
     }
 
-    // さらに奥を見る
-    if (depth < 6) {
 
-        drawDepth(depth + 1, w, h);
+    // 縦方向の線
+
+    for (
+        let i = -8;
+        i <= 8;
+        i++
+    ) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            width / 2,
+            horizon
+        );
+
+        ctx.lineTo(
+            width / 2 + i * width,
+            height
+        );
+
+        ctx.stroke();
     }
 }
 
-// ----------------------------------------
-// 深さに応じた座標
-// ----------------------------------------
 
-function getPositionAtDepth(depth) {
+// ========================================
+// レイキャスティング
+// ========================================
 
-    let x = player.x;
-    let y = player.y;
+function castRays(width, height) {
 
-    switch (player.direction) {
+    const FOV =
+        Math.PI / 3;
 
+    const rayCount =
+        Math.max(
+            160,
+            Math.floor(width / 2)
+        );
+
+
+    for (
+        let ray = 0;
+        ray < rayCount;
+        ray++
+    ) {
+
+        const cameraX =
+            (ray / rayCount) * 2 - 1;
+
+        const angle =
+            directionToAngle(
+                player.direction
+            ) +
+            cameraX * (FOV / 2);
+
+
+        const rayDirX =
+            Math.cos(angle);
+
+        const rayDirY =
+            Math.sin(angle);
+
+
+        const result =
+            castSingleRay(
+                rayDirX,
+                rayDirY
+            );
+
+
+        if (!result) {
+            continue;
+        }
+
+
+        // 魚眼効果を補正
+
+        const playerAngle =
+            directionToAngle(
+                player.direction
+            );
+
+        const correctedDistance =
+            result.distance *
+            Math.cos(
+                angle - playerAngle
+            );
+
+
+        const distance =
+            Math.max(
+                0.001,
+                correctedDistance
+            );
+
+
+        // 壁の高さ
+
+        const wallHeight =
+            Math.min(
+                height * 1.5,
+                height / distance
+            );
+
+
+        const top =
+            height / 2 -
+            wallHeight / 2;
+
+
+        // 壁の明るさ
+
+        let brightness =
+            1 / (1 + distance * 0.18);
+
+
+        brightness =
+            Math.max(
+                0.18,
+                Math.min(
+                    1,
+                    brightness
+                )
+            );
+
+
+        // 壁の面によって少し暗くする
+
+        if (result.side === 1) {
+            brightness *= 0.72;
+        }
+
+
+        const value =
+            Math.floor(
+                65 * brightness
+            );
+
+
+        ctx.fillStyle =
+            `rgb(${value},${value},${value})`;
+
+
+        const sliceWidth =
+            width / rayCount + 1;
+
+
+        ctx.fillRect(
+            ray * width / rayCount,
+            top,
+            sliceWidth,
+            wallHeight
+        );
+    }
+}
+
+
+// ========================================
+// 1本の光線を飛ばす
+// ========================================
+
+function castSingleRay(
+    rayDirX,
+    rayDirY
+) {
+
+    let mapX =
+        Math.floor(player.x);
+
+    let mapY =
+        Math.floor(player.y);
+
+
+    const deltaDistX =
+        Math.abs(
+            1 / (rayDirX || 0.000001)
+        );
+
+    const deltaDistY =
+        Math.abs(
+            1 / (rayDirY || 0.000001)
+        );
+
+
+    let stepX;
+    let stepY;
+
+    let sideDistX;
+    let sideDistY;
+
+
+    if (rayDirX < 0) {
+
+        stepX = -1;
+
+        sideDistX =
+            (player.x - mapX) *
+            deltaDistX;
+
+    } else {
+
+        stepX = 1;
+
+        sideDistX =
+            (mapX + 1.0 - player.x) *
+            deltaDistX;
+    }
+
+
+    if (rayDirY < 0) {
+
+        stepY = -1;
+
+        sideDistY =
+            (player.y - mapY) *
+            deltaDistY;
+
+    } else {
+
+        stepY = 1;
+
+        sideDistY =
+            (mapY + 1.0 - player.y) *
+            deltaDistY;
+    }
+
+
+    let side = 0;
+
+    let distance = 0;
+
+
+    // 最大探索距離
+
+    for (
+        let i = 0;
+        i < 30;
+        i++
+    ) {
+
+        if (
+            sideDistX <
+            sideDistY
+        ) {
+
+            sideDistX +=
+                deltaDistX;
+
+            mapX += stepX;
+
+            side = 0;
+
+            distance =
+                sideDistX -
+                deltaDistX;
+
+        } else {
+
+            sideDistY +=
+                deltaDistY;
+
+            mapY += stepY;
+
+            side = 1;
+
+            distance =
+                sideDistY -
+                deltaDistY;
+        }
+
+
+        if (
+            mapX < 0 ||
+            mapY < 0 ||
+            mapX >= mapWidth ||
+            mapY >= mapHeight
+        ) {
+
+            break;
+        }
+
+
+        if (
+            map[mapY][mapX] === "#"
+        ) {
+
+            return {
+                distance:
+                    Math.max(
+                        0.01,
+                        distance
+                    ),
+
+                side: side
+            };
+        }
+    }
+
+
+    return null;
+}
+
+
+// ========================================
+// 方向 → 角度
+// ========================================
+
+function directionToAngle(direction) {
+
+    switch (direction) {
+
+        // 北
         case 0:
-            y -= depth;
-            break;
+            return -Math.PI / 2;
 
+        // 東
         case 1:
-            x += depth;
-            break;
+            return 0;
 
+        // 南
         case 2:
-            y += depth;
-            break;
+            return Math.PI / 2;
 
+        // 西
         case 3:
-            x -= depth;
-            break;
+            return Math.PI;
     }
 
-    return { x, y };
+    return -Math.PI / 2;
 }
 
-// ----------------------------------------
-// 壁を描画
-// ----------------------------------------
-
-function drawWall(depth, w, h) {
-
-    const scale = 1 / Math.pow(1.55, depth - 1);
-
-    const wallWidth = w * 0.9 * scale;
-    const wallHeight = h * 0.75 * scale;
-
-    const centerX = w / 2;
-    const centerY = h / 2;
-
-    const left =
-        centerX - wallWidth / 2;
-
-    const right =
-        centerX + wallWidth / 2;
-
-    const top =
-        centerY - wallHeight / 2;
-
-    const bottom =
-        centerY + wallHeight / 2;
-
-    ctx.fillStyle = "#292929";
-
-    ctx.fillRect(
-        left,
-        top,
-        wallWidth,
-        wallHeight
-    );
-
-    ctx.strokeStyle = "#666";
-    ctx.lineWidth = Math.max(1, 3 * scale);
-
-    ctx.strokeRect(
-        left,
-        top,
-        wallWidth,
-        wallHeight
-    );
-}
 
 // ========================================
-// ステータス
+// ステータス更新
 // ========================================
 
 function updateStatus() {
 
-    document.getElementById("hp").textContent =
+    document.getElementById(
+        "hp"
+    ).textContent =
         player.hp;
 
-    document.getElementById("level").textContent =
+
+    document.getElementById(
+        "level"
+    ).textContent =
         player.level;
 }
+
 
 // ========================================
 // メッセージ
@@ -346,9 +710,12 @@ function updateStatus() {
 
 function showMessage(text) {
 
-    document.getElementById("message")
-        .textContent = text;
+    document.getElementById(
+        "message"
+    ).textContent =
+        text;
 }
+
 
 // ========================================
 // ボタン
@@ -356,53 +723,84 @@ function showMessage(text) {
 
 document
     .getElementById("forward")
-    .addEventListener("click", moveForward);
+    .addEventListener(
+        "click",
+        moveForward
+    );
+
 
 document
     .getElementById("back")
-    .addEventListener("click", moveBack);
+    .addEventListener(
+        "click",
+        moveBack
+    );
+
 
 document
     .getElementById("turnLeft")
-    .addEventListener("click", turnLeft);
+    .addEventListener(
+        "click",
+        turnLeft
+    );
+
 
 document
     .getElementById("turnRight")
-    .addEventListener("click", turnRight);
+    .addEventListener(
+        "click",
+        turnRight
+    );
+
 
 // ========================================
-// キーボード
+// キーボード操作
 // ========================================
 
-document.addEventListener("keydown", function(event) {
+document.addEventListener(
+    "keydown",
+    function(event) {
 
-    switch (event.key) {
+        switch (event.key) {
 
-        case "ArrowUp":
-        case "w":
-        case "W":
-            moveForward();
-            break;
+            case "ArrowUp":
+            case "w":
+            case "W":
 
-        case "ArrowDown":
-        case "s":
-        case "S":
-            moveBack();
-            break;
+                moveForward();
 
-        case "ArrowLeft":
-        case "a":
-        case "A":
-            turnLeft();
-            break;
+                break;
 
-        case "ArrowRight":
-        case "d":
-        case "D":
-            turnRight();
-            break;
+
+            case "ArrowDown":
+            case "s":
+            case "S":
+
+                moveBack();
+
+                break;
+
+
+            case "ArrowLeft":
+            case "a":
+            case "A":
+
+                turnLeft();
+
+                break;
+
+
+            case "ArrowRight":
+            case "d":
+            case "D":
+
+                turnRight();
+
+                break;
+        }
     }
-});
+);
+
 
 // ========================================
 // ゲーム開始
