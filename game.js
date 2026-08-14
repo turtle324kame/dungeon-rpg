@@ -45,7 +45,7 @@ const player = {
     // 1 = 東
     // 2 = 南
     // 3 = 西
-    direction: 0,
+    direction: 1,
 
     hp: 100,
     maxHp: 100,
