@@ -1,5 +1,5 @@
-body {
-    background-color: #111;
+  body {
+    background: #050505;
     color: white;
     font-family: monospace;
     text-align: center;
@@ -8,72 +8,103 @@ body {
 }
 
 #game {
-    width: 500px;
+    width: 600px;
     max-width: 100%;
-    margin: 20px auto;
-}
-
-#dungeon {
-    display: grid;
-    grid-template-columns: repeat(15, 1fr);
-    gap: 2px;
     margin: auto;
 }
 
-.cell {
-    aspect-ratio: 1;
-    background-color: #333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(12px, 4vw, 20px);
+/* ====================
+   ダンジョン画面
+   ==================== */
+
+#dungeonView {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #000;
+    border: 2px solid #555;
+    overflow: hidden;
 }
 
-.wall {
-    background-color: #111;
+#dungeonCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
-.player {
-    background-color: #444;
+#dungeonMessage {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    color: #ddd;
+    font-size: 16px;
+    pointer-events: none;
 }
+
+/* ====================
+   ステータス
+   ==================== */
 
 #status {
     display: flex;
     justify-content: space-around;
-    margin-top: 15px;
-    padding: 10px;
-    border: 1px solid white;
-}
 
-#message {
-    margin-top: 15px;
+    margin-top: 10px;
     padding: 10px;
+
+    border: 1px solid #555;
+    background: #111;
+
+    font-size: 16px;
 }
 
 /* ====================
-   スマホ操作ボタン
+   メッセージ
+   ==================== */
+
+#message {
+    margin-top: 10px;
+    padding: 10px;
+
+    min-height: 20px;
+
+    border: 1px solid #555;
+    background: #111;
+}
+
+/* ====================
+   操作ボタン
    ==================== */
 
 #controls {
-    margin-top: 20px;
-    text-align: center;
+    margin-top: 15px;
 }
 
 #controls button {
-    width: 65px;
-    height: 65px;
+    width: 70px;
+    height: 60px;
+
     margin: 3px;
+
+    color: white;
+    background: #222;
+
+    border: 2px solid #777;
+    border-radius: 10px;
+
     font-size: 25px;
     font-weight: bold;
-    color: white;
-    background-color: #333;
-    border: 2px solid white;
-    border-radius: 10px;
+
+    touch-action: manipulation;
 }
 
 #controls button:active {
-    background-color: #777;
+    background: #555;
 }
+
+/* スマホ用 */
 
 @media (max-width: 600px) {
 
@@ -82,7 +113,7 @@ body {
     }
 
     #controls button {
-        width: 60px;
-        height: 60px;
+        width: 65px;
+        height: 58px;
     }
 }
