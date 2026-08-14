@@ -1,18 +1,12 @@
 // ========================================
 // MONSTER DUNGEON RPG
 // 一人称ダンジョン探索システム
-// 疑似3Dレイキャスティング版
 // ========================================
 
 
 // ========================================
 // ダンジョンマップ
 // ========================================
-//
-// # = 壁
-// . = 通路
-// S = スタート地点
-//
 
 const map = [
     "###############",
@@ -35,20 +29,26 @@ const mapHeight = map.length;
 // ========================================
 // プレイヤー
 // ========================================
+//
+// x / y は「マスの中央」に配置します
+//
+// direction
+// 0 = 北
+// 1 = 東
+// 2 = 南
+// 3 = 西
+//
 
 const player = {
 
-    x: 8,
-    y: 5,
+    x: 8.5,
+    y: 5.5,
 
-    // 0 = 北
-    // 1 = 東
-    // 2 = 南
-    // 3 = 西
     direction: 1,
 
     hp: 100,
     maxHp: 100,
+
     level: 1
 };
 
@@ -60,11 +60,12 @@ const player = {
 const canvas =
     document.getElementById("dungeonCanvas");
 
-const ctx = canvas.getContext("2d");
+const ctx =
+    canvas.getContext("2d");
 
 
 // ========================================
-// Canvasサイズ調整
+// Canvasサイズ
 // ========================================
 
 function resizeCanvas() {
@@ -72,11 +73,20 @@ function resizeCanvas() {
     const rect =
         canvas.getBoundingClientRect();
 
-    canvas.width =
-        Math.max(320, Math.floor(rect.width));
+    const width =
+        Math.max(
+            320,
+            Math.floor(rect.width || 700)
+        );
 
-    canvas.height =
-        Math.max(240, Math.floor(rect.height));
+    const height =
+        Math.max(
+            240,
+            Math.floor(rect.height || 600)
+        );
+
+    canvas.width = width;
+    canvas.height = height;
 
     drawDungeon();
 }
@@ -93,41 +103,59 @@ window.addEventListener(
 
 function isWall(x, y) {
 
+    const mx = Math.floor(x);
+    const my = Math.floor(y);
+
     if (
-        x < 0 ||
-        y < 0 ||
-        x >= mapWidth ||
-        y >= mapHeight
+        mx < 0 ||
+        my < 0 ||
+        mx >= mapWidth ||
+        my >= mapHeight
     ) {
         return true;
     }
 
-    return map[y][x] === "#";
+    return map[my][mx] === "#";
 }
 
 
 // ========================================
-// 移動方向
+// 方向
 // ========================================
 
-function getDirectionVector() {
+function getDirection() {
 
     switch (player.direction) {
 
         case 0:
-            return { x: 0, y: -1 };
+            return {
+                x: 0,
+                y: -1
+            };
 
         case 1:
-            return { x: 1, y: 0 };
+            return {
+                x: 1,
+                y: 0
+            };
 
         case 2:
-            return { x: 0, y: 1 };
+            return {
+                x: 0,
+                y: 1
+            };
 
         case 3:
-            return { x: -1, y: 0 };
+            return {
+                x: -1,
+                y: 0
+            };
     }
 
-    return { x: 0, y: -1 };
+    return {
+        x: 1,
+        y: 0
+    };
 }
 
 
@@ -138,25 +166,35 @@ function getDirectionVector() {
 function moveForward() {
 
     const dir =
-        getDirectionVector();
+        getDirection();
 
-    const nextX =
+    const nx =
         player.x + dir.x;
 
-    const nextY =
+    const ny =
         player.y + dir.y;
 
-    if (isWall(nextX, nextY)) {
 
-        showMessage("壁にぶつかった。");
+    if (isWall(nx, ny)) {
+
+        showMessage(
+            "壁にぶつかった。"
+        );
+
+        drawDungeon();
 
         return;
     }
 
-    player.x = nextX;
-    player.y = nextY;
 
-    showMessage("前へ進んだ。");
+    player.x = nx;
+    player.y = ny;
+
+
+    showMessage(
+        "前へ進んだ。"
+    );
+
 
     drawDungeon();
 }
@@ -169,25 +207,35 @@ function moveForward() {
 function moveBack() {
 
     const dir =
-        getDirectionVector();
+        getDirection();
 
-    const nextX =
+    const nx =
         player.x - dir.x;
 
-    const nextY =
+    const ny =
         player.y - dir.y;
 
-    if (isWall(nextX, nextY)) {
 
-        showMessage("壁にぶつかった。");
+    if (isWall(nx, ny)) {
+
+        showMessage(
+            "壁にぶつかった。"
+        );
+
+        drawDungeon();
 
         return;
     }
 
-    player.x = nextX;
-    player.y = nextY;
 
-    showMessage("後ろへ下がった。");
+    player.x = nx;
+    player.y = ny;
+
+
+    showMessage(
+        "後ろへ下がった。"
+    );
+
 
     drawDungeon();
 }
@@ -202,7 +250,9 @@ function turnLeft() {
     player.direction =
         (player.direction + 3) % 4;
 
-    showMessage("左を向いた。");
+    showMessage(
+        "左を向いた。"
+    );
 
     drawDungeon();
 }
@@ -217,14 +267,16 @@ function turnRight() {
     player.direction =
         (player.direction + 1) % 4;
 
-    showMessage("右を向いた。");
+    showMessage(
+        "右を向いた。"
+    );
 
     drawDungeon();
 }
 
 
 // ========================================
-// 一人称ダンジョン描画
+// 一人称画面
 // ========================================
 
 function drawDungeon() {
@@ -237,17 +289,32 @@ function drawDungeon() {
 
 
     // ----------------------------
-    // 背景
+    // 全体を黒で消去
     // ----------------------------
 
-    // 空
-    ctx.fillStyle = "#101010";
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    // ----------------------------
+    // 天井
+    // ----------------------------
+
+    const horizon =
+        height * 0.50;
+
+    ctx.fillStyle =
+        "#111111";
 
     ctx.fillRect(
         0,
         0,
         width,
-        height / 2
+        horizon
     );
 
 
@@ -255,13 +322,14 @@ function drawDungeon() {
     // 床
     // ----------------------------
 
-    ctx.fillStyle = "#202020";
+    ctx.fillStyle =
+        "#252525";
 
     ctx.fillRect(
         0,
-        height / 2,
+        horizon,
         width,
-        height / 2
+        height - horizon
     );
 
 
@@ -269,34 +337,38 @@ function drawDungeon() {
     // 床の遠近線
     // ----------------------------
 
-    drawFloorLines(
+    drawFloor(
         width,
-        height
+        height,
+        horizon
     );
 
 
     // ----------------------------
-    // レイキャスティング
+    // 壁
     // ----------------------------
 
-    castRays(
+    drawWalls(
         width,
-        height
+        height,
+        horizon
     );
 
 
     // ----------------------------
-    // 画面枠
+    // 枠
     // ----------------------------
 
-    ctx.strokeStyle = "#777";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle =
+        "#777777";
+
+    ctx.lineWidth = 3;
 
     ctx.strokeRect(
-        1,
-        1,
-        width - 2,
-        height - 2
+        1.5,
+        1.5,
+        width - 3,
+        height - 3
     );
 
 
@@ -305,35 +377,35 @@ function drawDungeon() {
 
 
 // ========================================
-// 床の遠近線
+// 床を描画
 // ========================================
 
-function drawFloorLines(width, height) {
+function drawFloor(
+    width,
+    height,
+    horizon
+) {
 
     ctx.strokeStyle =
-        "rgba(130,130,130,0.18)";
+        "rgba(150,150,150,0.18)";
 
     ctx.lineWidth = 1;
 
 
-    const horizon =
-        height * 0.52;
-
-
-    // 横方向の線
+    // 横線
 
     for (
         let i = 1;
-        i <= 7;
+        i <= 8;
         i++
     ) {
 
         const t =
-            i / 7;
+            i / 8;
 
         const y =
             horizon +
-            Math.pow(t, 1.7) *
+            Math.pow(t, 1.8) *
             (height - horizon);
 
         ctx.beginPath();
@@ -352,7 +424,7 @@ function drawFloorLines(width, height) {
     }
 
 
-    // 縦方向の線
+    // 縦線
 
     for (
         let i = -8;
@@ -378,65 +450,75 @@ function drawFloorLines(width, height) {
 
 
 // ========================================
-// レイキャスティング
+// 壁を描画
 // ========================================
 
-function castRays(width, height) {
+function drawWalls(
+    width,
+    height,
+    horizon
+) {
 
-    const FOV =
+    const fov =
         Math.PI / 3;
 
     const rayCount =
         Math.max(
-            160,
-            Math.floor(width / 2)
+            240,
+            Math.floor(width * 0.7)
+        );
+
+
+    const playerAngle =
+        directionToAngle(
+            player.direction
         );
 
 
     for (
-        let ray = 0;
-        ray < rayCount;
-        ray++
+        let i = 0;
+        i < rayCount;
+        i++
     ) {
 
-        const cameraX =
-            (ray / rayCount) * 2 - 1;
+        // -1 ～ +1
+
+        const camera =
+            (i / (rayCount - 1)) * 2 - 1;
+
+
+        // 視野角
 
         const angle =
-            directionToAngle(
-                player.direction
-            ) +
-            cameraX * (FOV / 2);
+            playerAngle +
+            camera * fov / 2;
 
 
-        const rayDirX =
+        const rayX =
             Math.cos(angle);
 
-        const rayDirY =
+        const rayY =
             Math.sin(angle);
 
 
-        const result =
-            castSingleRay(
-                rayDirX,
-                rayDirY
+        const hit =
+            castRay(
+                rayX,
+                rayY
             );
 
 
-        if (!result) {
+        if (!hit) {
             continue;
         }
 
 
-        // 魚眼効果を補正
+        // ----------------------------
+        // 魚眼補正
+        // ----------------------------
 
-        const playerAngle =
-            directionToAngle(
-                player.direction
-            );
-
-        const correctedDistance =
-            result.distance *
+        const corrected =
+            hit.distance *
             Math.cos(
                 angle - playerAngle
             );
@@ -444,34 +526,45 @@ function castRays(width, height) {
 
         const distance =
             Math.max(
-                0.001,
-                correctedDistance
+                0.15,
+                corrected
             );
 
 
+        // ----------------------------
         // 壁の高さ
+        // ----------------------------
 
-        const wallHeight =
+        let wallHeight =
+            height * 0.95 / distance;
+
+
+        // 大きくなりすぎないように制限
+
+        wallHeight =
             Math.min(
-                height * 1.5,
-                height / distance
+                height * 0.95,
+                wallHeight
             );
 
 
         const top =
-            height / 2 -
+            horizon -
             wallHeight / 2;
 
 
+        // ----------------------------
         // 壁の明るさ
+        // ----------------------------
 
         let brightness =
-            1 / (1 + distance * 0.18);
+            1 /
+            (1 + distance * 0.22);
 
 
         brightness =
             Math.max(
-                0.18,
+                0.20,
                 Math.min(
                     1,
                     brightness
@@ -479,42 +572,71 @@ function castRays(width, height) {
             );
 
 
-        // 壁の面によって少し暗くする
+        // 横壁を少し暗くする
 
-        if (result.side === 1) {
+        if (hit.side === 1) {
+
             brightness *= 0.72;
         }
 
 
-        const value =
+        const gray =
             Math.floor(
-                65 * brightness
+                100 * brightness
             );
 
 
         ctx.fillStyle =
-            `rgb(${value},${value},${value})`;
+            `rgb(${gray},${gray},${gray})`;
 
 
-        const sliceWidth =
-            width / rayCount + 1;
+        // ----------------------------
+        // 壁の1列
+        // ----------------------------
+
+        const x =
+            i * width / rayCount;
+
+
+        const columnWidth =
+            width / rayCount + 2;
 
 
         ctx.fillRect(
-            ray * width / rayCount,
+            x,
             top,
-            sliceWidth,
+            columnWidth,
             wallHeight
         );
+
+
+        // ----------------------------
+        // 壁の境界線
+        // ----------------------------
+
+        if (distance < 8) {
+
+            ctx.fillStyle =
+                `rgba(220,220,220,${
+                    0.15 * brightness
+                })`;
+
+            ctx.fillRect(
+                x,
+                top,
+                columnWidth,
+                2
+            );
+        }
     }
 }
 
 
 // ========================================
-// 1本の光線を飛ばす
+// レイを飛ばす
 // ========================================
 
-function castSingleRay(
+function castRay(
     rayDirX,
     rayDirY
 ) {
@@ -544,6 +666,10 @@ function castSingleRay(
     let sideDistY;
 
 
+    // ----------------------------
+    // X方向
+    // ----------------------------
+
     if (rayDirX < 0) {
 
         stepX = -1;
@@ -561,6 +687,10 @@ function castSingleRay(
             deltaDistX;
     }
 
+
+    // ----------------------------
+    // Y方向
+    // ----------------------------
 
     if (rayDirY < 0) {
 
@@ -582,15 +712,15 @@ function castSingleRay(
 
     let side = 0;
 
-    let distance = 0;
 
-
-    // 最大探索距離
+    // ----------------------------
+    // マップを進む
+    // ----------------------------
 
     for (
-        let i = 0;
-        i < 30;
-        i++
+        let count = 0;
+        count < 64;
+        count++
     ) {
 
         if (
@@ -601,28 +731,24 @@ function castSingleRay(
             sideDistX +=
                 deltaDistX;
 
-            mapX += stepX;
+            mapX +=
+                stepX;
 
             side = 0;
-
-            distance =
-                sideDistX -
-                deltaDistX;
 
         } else {
 
             sideDistY +=
                 deltaDistY;
 
-            mapY += stepY;
+            mapY +=
+                stepY;
 
             side = 1;
-
-            distance =
-                sideDistY -
-                deltaDistY;
         }
 
+
+        // マップ外
 
         if (
             mapX < 0 ||
@@ -631,22 +757,50 @@ function castSingleRay(
             mapY >= mapHeight
         ) {
 
-            break;
+            return null;
         }
 
+
+        // 壁に当たった
 
         if (
             map[mapY][mapX] === "#"
         ) {
 
-            return {
-                distance:
-                    Math.max(
-                        0.01,
-                        distance
-                    ),
+            let distance;
 
-                side: side
+
+            if (side === 0) {
+
+                distance =
+                    (
+                        mapX -
+                        player.x +
+                        (1 - stepX) / 2
+                    ) /
+                    rayDirX;
+
+            } else {
+
+                distance =
+                    (
+                        mapY -
+                        player.y +
+                        (1 - stepY) / 2
+                    ) /
+                    rayDirY;
+            }
+
+
+            return {
+
+                distance:
+                    Math.abs(distance),
+
+                side: side,
+
+                mapX: mapX,
+                mapY: mapY
             };
         }
     }
@@ -657,50 +811,58 @@ function castSingleRay(
 
 
 // ========================================
-// 方向 → 角度
+// 方向を角度に変換
 // ========================================
 
-function directionToAngle(direction) {
+function directionToAngle(
+    direction
+) {
 
     switch (direction) {
 
-        // 北
         case 0:
             return -Math.PI / 2;
 
-        // 東
         case 1:
             return 0;
 
-        // 南
         case 2:
             return Math.PI / 2;
 
-        // 西
         case 3:
             return Math.PI;
     }
 
-    return -Math.PI / 2;
+
+    return 0;
 }
 
 
 // ========================================
-// ステータス更新
+// ステータス
 // ========================================
 
 function updateStatus() {
 
-    document.getElementById(
-        "hp"
-    ).textContent =
-        player.hp;
+    const hp =
+        document.getElementById("hp");
+
+    const level =
+        document.getElementById("level");
 
 
-    document.getElementById(
-        "level"
-    ).textContent =
-        player.level;
+    if (hp) {
+
+        hp.textContent =
+            player.hp;
+    }
+
+
+    if (level) {
+
+        level.textContent =
+            player.level;
+    }
 }
 
 
@@ -710,10 +872,17 @@ function updateStatus() {
 
 function showMessage(text) {
 
-    document.getElementById(
-        "message"
-    ).textContent =
-        text;
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    if (message) {
+
+        message.textContent =
+            text;
+    }
 }
 
 
@@ -721,40 +890,65 @@ function showMessage(text) {
 // ボタン
 // ========================================
 
-document
-    .getElementById("forward")
-    .addEventListener(
+const forward =
+    document.getElementById(
+        "forward"
+    );
+
+const back =
+    document.getElementById(
+        "back"
+    );
+
+const turnLeftButton =
+    document.getElementById(
+        "turnLeft"
+    );
+
+const turnRightButton =
+    document.getElementById(
+        "turnRight"
+    );
+
+
+if (forward) {
+
+    forward.addEventListener(
         "click",
         moveForward
     );
+}
 
 
-document
-    .getElementById("back")
-    .addEventListener(
+if (back) {
+
+    back.addEventListener(
         "click",
         moveBack
     );
+}
 
 
-document
-    .getElementById("turnLeft")
-    .addEventListener(
+if (turnLeftButton) {
+
+    turnLeftButton.addEventListener(
         "click",
         turnLeft
     );
+}
 
 
-document
-    .getElementById("turnRight")
-    .addEventListener(
+if (turnRightButton) {
+
+    turnRightButton.addEventListener(
         "click",
         turnRight
     );
+}
 
 
 // ========================================
-// キーボード操作
+// キーボード
 // ========================================
 
 document.addEventListener(
