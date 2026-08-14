@@ -11,14 +11,31 @@
 
 <h1>Dungeon RPG</h1>
 
-<div id="dungeon"></div>
+<div id="game">
 
-<div id="status">
-    HP: <span id="hp">100</span>
-</div>
+    <div id="dungeon"></div>
 
-<div id="message">
-    ダンジョン探索開始！
+    <div id="status">
+        <div>Lv <span id="level">1</span></div>
+        <div>HP <span id="hp">100</span> / 100</div>
+    </div>
+
+    <div id="message">
+        ダンジョン探索開始！
+    </div>
+
+    <div id="controls">
+
+        <button id="up">▲</button>
+
+        <div>
+            <button id="left">◀</button>
+            <button id="down">▼</button>
+            <button id="right">▶</button>
+        </div>
+
+    </div>
+
 </div>
 
 <script src="game.js"></script>
