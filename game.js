@@ -41,7 +41,7 @@ const mapHeight = map.length;
 
 const player = {
 
-    x: 8.5,
+    x: 5.5,
     y: 5.5,
 
     direction: 1,
