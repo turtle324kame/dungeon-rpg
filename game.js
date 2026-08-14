@@ -5,8 +5,6 @@
 const width = 15;
 const height = 11;
 
-// # = 壁
-// . = 床
 const map = [
     "###############",
     "#.............#",
@@ -34,7 +32,7 @@ let player = {
 };
 
 // ====================
-// ダンジョンを表示
+// ダンジョン表示
 // ====================
 
 function drawDungeon() {
@@ -54,8 +52,7 @@ function drawDungeon() {
             if (map[y][x] === "#") {
                 cell.classList.add("wall");
                 cell.textContent = "■";
-            }
-            else {
+            } else {
                 cell.textContent = "・";
             }
 
@@ -82,7 +79,7 @@ function movePlayer(dx, dy) {
     const newX = player.x + dx;
     const newY = player.y + dy;
 
-    // 壁なら移動できない
+    // 壁なら移動しない
     if (map[newY][newX] === "#") {
 
         document.getElementById("message").textContent =
@@ -110,25 +107,49 @@ document.addEventListener("keydown", function(event) {
 
         case "ArrowUp":
         case "w":
+        case "W":
             movePlayer(0, -1);
             break;
 
         case "ArrowDown":
         case "s":
+        case "S":
             movePlayer(0, 1);
             break;
 
         case "ArrowLeft":
         case "a":
+        case "A":
             movePlayer(-1, 0);
             break;
 
         case "ArrowRight":
         case "d":
+        case "D":
             movePlayer(1, 0);
             break;
     }
 
+});
+
+// ====================
+// スマホ操作
+// ====================
+
+document.getElementById("up").addEventListener("click", function() {
+    movePlayer(0, -1);
+});
+
+document.getElementById("down").addEventListener("click", function() {
+    movePlayer(0, 1);
+});
+
+document.getElementById("left").addEventListener("click", function() {
+    movePlayer(-1, 0);
+});
+
+document.getElementById("right").addEventListener("click", function() {
+    movePlayer(1, 0);
 });
 
 // ====================
